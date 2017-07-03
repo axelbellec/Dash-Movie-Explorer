@@ -9,7 +9,7 @@ with sqlite3.connect('movies.db') as con:
 # Join tables, filtering out those with <10 reviews, and select specified columns
 all_movies = pd.merge(omdb, tomatoes, how='inner', on='ID')\
     .pipe(lambda df: df[df['Reviews'] >= 10])\
-    .assign(has_oscar=lambda row: row.Oscars == 1)
+    .assign(has_oscar=lambda row: row.Oscars >= 1)
 
 
 variable_labels = {
