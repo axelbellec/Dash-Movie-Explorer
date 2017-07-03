@@ -9,6 +9,7 @@ df = all_movies.copy()
 
 app = dash.Dash()
 
+
 app.layout = html.Div([
     html.H1('Movie Explorer'),
     html.H2('Dash: A web application framework for Python.'),
@@ -17,10 +18,20 @@ app.layout = html.Div([
         id='nb-reviews-slider',
         min=df.Reviews.min(),
         max=df.Reviews.max(),
-        marks={str(rvw): str(rvw) for rvw in df.Reviews.unique()},
+        marks={str(rvw): str(rvw) for rvw in range(int(df.Reviews.min()), len(df.Reviews.unique()), 30)},
         value=df.Reviews.min(),
-        step=30.0
+        step=None
     ),
+    html.Label('Year released'),
+    dcc.Slider(
+        id='year-released-slider',
+        min=df.Year.min(),
+        max=df.Year.max(),
+        marks={str(y): str(y) for y in range(int(df.Year.min()), int(df.Year.max()), 5)},
+        value=df.Year.min(),
+        step=None
+    ),
+    html.Label('Graph'),
     dcc.Graph(
         id='scatter-plot-graph',
         animate=True,
@@ -66,9 +77,14 @@ app.layout = html.Div([
 
 @app.callback(
     dash.dependencies.Output('scatter-plot-graph', 'figure'),
-    [dash.dependencies.Input('nb-reviews-slider', 'value')])
-def update_scatter_plot(selected_nb_reviews):
-    filtered_df = df[df.Reviews >= selected_nb_reviews]
+    [dash.dependencies.Input('nb-reviews-slider', 'value'), dash.dependencies.Input('year-released-slider', 'value')])
+def update_scatter_plot(selected_nb_reviews, selected_year_released):
+
+    nb_reviews = selected_nb_reviews or df.Reviews.min()
+    year_released = selected_year_released or df.Year.min()
+
+    filtered_df = df.pipe(lambda df: df[df['Reviews'] >= nb_reviews])\
+        .pipe(lambda df: df[df['Year'] >= year_released])
 
     return {
         'data': [
@@ -101,15 +117,26 @@ def update_scatter_plot(selected_nb_reviews):
         ],
         'layout': go.Layout(
             margin={'l': 40, 'b': 40, 't': 10, 'r': 10},
-            xaxis={'title': variable_labels['Meter']},
-            yaxis={'title': variable_labels['Reviews']},
+            xaxis={
+                'title': variable_labels['Meter'],
+                'range': [
+                    filtered_df[filtered_df.has_oscar == False].Meter.min() - 10,
+                    filtered_df[filtered_df.has_oscar == False].Meter.max() + 10
+                ]
+            },
+            yaxis={
+                'title': variable_labels['Reviews'],
+                'range': [
+                    filtered_df[filtered_df.has_oscar == False].Reviews.min() - 10,
+                    filtered_df[filtered_df.has_oscar == False].Reviews.max() + 10
+                ]},
             hovermode='closest'
         )
     }
 
 
 # Add a custom CSS stylesheet
-app.css.append_css({'external_url': 'https://codepen.io/chriddyp/pen/bWLwgP.css'})
+app.css.append_css({'external_url': 'https://unpkg.com/normalize.css@5.0.0'})
 
 
 if __name__ == '__main__':
