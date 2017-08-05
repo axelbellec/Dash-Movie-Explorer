@@ -9,6 +9,7 @@ decorator==4.0.11
 Flask==0.12.2
 Flask-Compress==1.4.0
 Flask-SeaSurf==0.2.2
+gunicorn==19.7.1
 idna==2.5
 ipython-genutils==0.2.0
 itsdangerous==0.24
