@@ -11,7 +11,11 @@ from get_data import all_movies, variable_labels, genres
 df = all_movies.copy()
 
 # Init Dash app
-app = dash.Dash()
+app = dash.Dash(__name__)
+
+# Get the Flask app instance for Heroku deployment
+server = app.server
+server.secret_key = 'thisisasecretkey'
 
 # Set app layout
 app.layout = html.Div([
